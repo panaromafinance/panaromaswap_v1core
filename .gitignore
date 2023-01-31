@@ -1,0 +1,7 @@
+cache/
+typechain/
+node_modules/
+build/
+artifacts/
+hardhat.config.ts
+scripts/
