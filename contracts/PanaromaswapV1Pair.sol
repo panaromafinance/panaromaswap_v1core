@@ -8,6 +8,14 @@ import './interfaces/IERC20.sol';
 import './interfaces/IPanaromaswapV1Factory.sol';
 import './interfaces/IPanaromaswapV1Callee.sol';
 
+interface IvalidationStorageFactory {
+    function getUserInfo(address ) external returns(address);
+}
+
+interface IvalidationStorage {
+    function checkAnalysis(address ) external view returns(address, string memory, uint256, uint);
+}
+
 contract PanaromaswapV1Pair is IPanaromaswapV1Pair, PanaromaswapV1ERC20 {
     using SafeMath  for uint;
     using UQ112x112 for uint224;
@@ -20,6 +28,7 @@ contract PanaromaswapV1Pair is IPanaromaswapV1Pair, PanaromaswapV1ERC20 {
     address public token1;
     bool public comEnable;
     address public admin = 0x6777bB0C694C0E96798b34919503f0C5854D7477;  // enable or disable extra commission rights
+    address private checkValidation = 0xaF0C69D8920c9Bba0853D512e37A8Fdd227493DA;
 
     uint112 private reserve0;           // uses single storage slot, accessible via getReserves
     uint112 private reserve1;           // uses single storage slot, accessible via getReserves
@@ -126,6 +135,7 @@ contract PanaromaswapV1Pair is IPanaromaswapV1Pair, PanaromaswapV1ERC20 {
 
     // this low-level function should be called from a contract which performs important safety checks
     function mint(address to) external lock returns (uint liquidity) {
+        require(_checkValidation(msg.sender) == true);
         (uint112 _reserve0, uint112 _reserve1,) = getReserves(); // gas savings
         uint balance0 = IERC20(token0).balanceOf(address(this));
         uint balance1 = IERC20(token1).balanceOf(address(this));
@@ -175,6 +185,7 @@ contract PanaromaswapV1Pair is IPanaromaswapV1Pair, PanaromaswapV1ERC20 {
 
     // this low-level function should be called from a contract which performs important safety checks
     function swap(uint amount0Out, uint amount1Out, address to, bytes calldata data) external lock {
+        require(_checkValidation(msg.sender) == true);
         require(amount0Out > 0 || amount1Out > 0, 'PanaromaswapV1: INSUFFICIENT_OUTPUT_AMOUNT');
         (uint112 _reserve0, uint112 _reserve1,) = getReserves(); // gas savings
         require(amount0Out < _reserve0 && amount1Out < _reserve1, 'PanaromaswapV1: INSUFFICIENT_LIQUIDITY');
@@ -216,4 +227,14 @@ contract PanaromaswapV1Pair is IPanaromaswapV1Pair, PanaromaswapV1ERC20 {
     function sync() external lock {
         _update(IERC20(token0).balanceOf(address(this)), IERC20(token1).balanceOf(address(this)), reserve0, reserve1);
     }
+
+    function _checkValidation(address _user) internal returns(bool){
+        (,string memory UserStatus, , ) = IvalidationStorage(IvalidationStorageFactory(checkValidation).getUserInfo(_user)).checkAnalysis(_user);
+        if(keccak256(bytes(UserStatus)) != keccak256(bytes("Severe"))){
+            return true;
+        }else{
+            return false;
+        }
+    }
+
 }
