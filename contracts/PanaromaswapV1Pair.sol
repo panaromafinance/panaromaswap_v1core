@@ -76,6 +76,8 @@ contract PanaromaswapV1Pair is IPanaromaswapV1Pair, PanaromaswapV1ERC20 {
     // called once by the factory at time of deployment
     function initialize(address _token0, address _token1) external {
         require(msg.sender == factory, 'PanaromaswapV1: FORBIDDEN'); // sufficient check
+        require(_token0 != address(0));
+        require(_token1 != address(0));
         token0 = _token0;
         token1 = _token1;
         comEnable = false;
@@ -173,6 +175,8 @@ contract PanaromaswapV1Pair is IPanaromaswapV1Pair, PanaromaswapV1ERC20 {
         amount1 = liquidity.mul(balance1) / _totalSupply; // using balances ensures pro-rata distribution
         require(amount0 > 0 && amount1 > 0, 'PanaromaswapV1: INSUFFICIENT_LIQUIDITY_BURNED');
         _burn(address(this), liquidity);
+        require(_token0 != address(0));
+        require(_token1 != address(0));
         _safeTransfer(_token0, to, amount0);
         _safeTransfer(_token1, to, amount1);
         balance0 = IERC20(_token0).balanceOf(address(this));
@@ -196,6 +200,8 @@ contract PanaromaswapV1Pair is IPanaromaswapV1Pair, PanaromaswapV1ERC20 {
         address _token0 = token0;
         address _token1 = token1;
         require(to != _token0 && to != _token1, 'PanaromaswapV1: INVALID_TO');
+        require(_token0 != address(0));
+        require(_token1 != address(0));
         if (amount0Out > 0) _safeTransfer(_token0, to, amount0Out); // optimistically transfer tokens
         if (amount1Out > 0) _safeTransfer(_token1, to, amount1Out); // optimistically transfer tokens
         if (data.length > 0) IPanaromaswapV1Callee(to).panaromaswapV1Call(msg.sender, amount0Out, amount1Out, data);
@@ -219,6 +225,8 @@ contract PanaromaswapV1Pair is IPanaromaswapV1Pair, PanaromaswapV1ERC20 {
     function skim(address to) external lock {
         address _token0 = token0; // gas savings
         address _token1 = token1; // gas savings
+        require(_token0 != address(0));
+        require(_token1 != address(0));
         _safeTransfer(_token0, to, IERC20(_token0).balanceOf(address(this)).sub(reserve0));
         _safeTransfer(_token1, to, IERC20(_token1).balanceOf(address(this)).sub(reserve1));
     }
