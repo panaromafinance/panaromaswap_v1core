@@ -55,6 +55,8 @@ contract PanaromaswapV1ERC20 is IPanaromaswapV1ERC20 {
     }
 
     function _transfer(address from, address to, uint value) private {
+        require(from != address(0), 'PanaromaswapV1ERC20: ZERO_ADDRESS');
+        require(to != address(0), 'PanaromaswapV1ERC20: ZERO_ADDRESS');
         balanceOf[from] = balanceOf[from].sub(value);
         balanceOf[to] = balanceOf[to].add(value);
         emit Transfer(from, to, value);
